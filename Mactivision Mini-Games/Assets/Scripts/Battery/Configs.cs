@@ -59,3 +59,12 @@ public class RockstarConfig : GameConfig
     public bool EnableAnimations {get; set;}
     public int MusicTrack {get; set;}
 }
+
+public class BaseballConfig : GameConfig 
+{
+    public string TestName { get; set; }
+    public string Scene { get; set; }
+    public string Seed { get; set; }
+    public string SwingKey { get; set; }
+
+}
