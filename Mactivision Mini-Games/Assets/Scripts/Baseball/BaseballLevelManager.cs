@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class BaseballLevelManager : LevelManager
 {
+    public Pitcher pitcher;            // the ball pitcher
     public TMP_Text swingKeyText;      // text that contain instructions for swingKey bind  
 
     KeyCode swingKey;                  // keyboard key used to swing
@@ -13,11 +14,21 @@ public class BaseballLevelManager : LevelManager
     TimeAccuracyMetric taMetric;       // records time accuracy data during the game
     MetricJSONWriter metricWriter;     // outputs recording metric (bpMetric) as a json file
 
+    // Represents the state of the game cycle
+    enum GameState {
+        BallReady,
+        WaitingForPlayer,
+        Result
+    }
+    GameState gameState;
+
     // Start is called before the first frame update
     void Start() {
         Setup(); // run initial setup, inherited from parent class
 
         InitConfigurable(); // initialize configurable values
+
+        gameState = GameState.BallReady;
 
         // set the swingKey for the intro instructions
         int tempIdx = swingKeyText.text.IndexOf("SKEY");
@@ -26,6 +37,8 @@ public class BaseballLevelManager : LevelManager
         countDoneText = "Swing!";
 
         taMetric = new TimeAccuracyMetric();
+
+        pitcher.Init(seed, 1, 2, false);
     }
 
     // Initialize values using config file, or default values if config values not specified
@@ -81,6 +94,18 @@ public class BaseballLevelManager : LevelManager
         if (lvlState == 2) {
             // begin game, begin recording 
             if (!taMetric.isRecording) StartGame();
+
+            // The game cycle
+            switch (gameState) {
+                case GameState.BallReady:
+                    pitcher.Throw();
+                    gameState = GameState.WaitingForPlayer;
+                    break;
+                case GameState.WaitingForPlayer:
+                    break;
+                case GameState.Result:
+                    break;
+            }
         }
     }
 

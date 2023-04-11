@@ -109,7 +109,7 @@ public class Dispenser : MonoBehaviour
             }
         }
 
-        // dispensing animation and sound
+        // dispensing an    imation and sound
         pipe.Play("Base Layer.pipe_dispense");
         sound.clip = dispense_sound;
         sound.PlayDelayed(0f);
