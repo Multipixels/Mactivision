@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 
@@ -80,7 +81,7 @@ public class BaseballLevelManager : LevelManager
             }
         }
 
-        if (lvlState == 2 && e.keyCode != KeyCode.None) EndGame();
+        //if (lvlState == 2 && e.keyCode != KeyCode.None) EndGame();
 
         // game is over, go to next game/finish battery
         if (lvlState == 4 && e.type == EventType.KeyUp) {
@@ -102,6 +103,7 @@ public class BaseballLevelManager : LevelManager
                     gameState = GameState.WaitingForPlayer;
                     break;
                 case GameState.WaitingForPlayer:
+                    WaitForPlayer();
                     break;
                 case GameState.Result:
                     break;
@@ -125,5 +127,26 @@ public class BaseballLevelManager : LevelManager
                 );
         StartCoroutine(Post("baseball_" + DateTime.Now.ToFileTime() + ".json", str));
         EndLevel(0f);
+    }
+
+    // This function is called each frame the game is waiting for input from the player.
+    // When the player makes a choice, it plays appropriate animations and  
+    // records the metric event, and starts the choice wait coroutine.
+    void WaitForPlayer() {
+        if (Input.GetKeyDown(swingKey) || Input.GetKeyDown(swingKey)) {
+            
+            // animate player
+
+            // record the metric
+            taMetric.recordEvent(new TimeAccuracyEvent(
+                pitcher.throwStartDateTime,
+                (pitcher.throwAirTime) - (Time.time - pitcher.throwStartTime)
+            ));
+
+            Debug.Log((pitcher.throwAirTime) - (Time.time - pitcher.throwStartTime));
+
+            // animate choice and play plate sound
+            gameState = GameState.Result;
+        }
     }
 }
