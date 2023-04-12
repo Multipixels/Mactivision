@@ -62,4 +62,8 @@ public class Pitcher : MonoBehaviour
         ball.Init(transform.position, currentThrow.x, currentThrow.y);
         ball.Throw();
     }
+
+    public void Result(float acc) {
+        ball.Result(acc);
+    }
 }

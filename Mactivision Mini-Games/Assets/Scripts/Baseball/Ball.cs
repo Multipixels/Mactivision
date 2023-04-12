@@ -6,10 +6,13 @@ public class Ball : MonoBehaviour
 {
 
     Vector3 initPosition;
+    Vector3 resultInitPosition;
     float velocity;
     float acceleration;
 
     float startTime;
+    float resultStartTime;
+    float resultAngle;
 
     enum BallState {
         Ready,
@@ -31,16 +34,37 @@ public class Ball : MonoBehaviour
         ballState = BallState.Motion;
     }
 
-    public void Update() {
-        if(ballState == BallState.Motion) {
-            float timeDifference = Time.time - startTime;
+    public void Result(float acc) {
 
-            if(initPosition.x > 0) {
-                transform.position = initPosition - new Vector3(velocity * timeDifference + 0.5f * acceleration * timeDifference * timeDifference, 0, 0);
-            } else {
-                transform.position = initPosition + new Vector3(velocity * timeDifference + 0.5f * acceleration * timeDifference * timeDifference, 0, 0);
-            }
-            
+        float percentage = acc / 0.05f;
+
+        if (Mathf.Abs(percentage) < 1) {
+
+            resultAngle = (Mathf.PI / 4) + (Mathf.PI / 8 * percentage);
+            resultInitPosition = transform.position;
+            resultStartTime = Time.time;
+            ballState = BallState.Result;
         }
+    }
+
+    public void Update() {
+        switch(ballState) {
+            case BallState.Motion:
+                float timeDifference = Time.time - startTime;
+
+                if(initPosition.x > 0) {
+                    transform.position = initPosition - new Vector3(velocity * timeDifference + 0.5f * acceleration * timeDifference * timeDifference, 0, 0);
+                } else {
+                    transform.position = initPosition + new Vector3(velocity * timeDifference + 0.5f * acceleration * timeDifference * timeDifference, 0, 0);
+                }
+
+                break;
+
+            case BallState.Result:
+                float resultTimeDifference = Time.time - resultStartTime;
+                transform.position = resultInitPosition + new Vector3(10 * resultTimeDifference * Mathf.Cos(resultAngle), 10 * resultTimeDifference * Mathf.Sin(resultAngle), 0);
+
+                break;
+        } 
     }
 }

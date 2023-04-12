@@ -19,7 +19,8 @@ public class BaseballLevelManager : LevelManager
     enum GameState {
         BallReady,
         WaitingForPlayer,
-        Result
+        Result,
+        WaitForResult
     }
     GameState gameState;
 
@@ -106,6 +107,10 @@ public class BaseballLevelManager : LevelManager
                     WaitForPlayer();
                     break;
                 case GameState.Result:
+                    StartCoroutine(WaitForResult(2f));
+                    gameState = GameState.WaitForResult;
+                    break;
+                case GameState.WaitForResult:
                     break;
             }
         }
@@ -134,19 +139,26 @@ public class BaseballLevelManager : LevelManager
     // records the metric event, and starts the choice wait coroutine.
     void WaitForPlayer() {
         if (Input.GetKeyDown(swingKey) || Input.GetKeyDown(swingKey)) {
-            
+
             // animate player
 
             // record the metric
+            float acc = (pitcher.throwAirTime) - (Time.time - pitcher.throwStartTime);
             taMetric.recordEvent(new TimeAccuracyEvent(
                 pitcher.throwStartDateTime,
-                (pitcher.throwAirTime) - (Time.time - pitcher.throwStartTime)
+                acc
             ));
 
-            Debug.Log((pitcher.throwAirTime) - (Time.time - pitcher.throwStartTime));
+            Debug.Log(acc);
+            pitcher.Result(acc);
 
             // animate choice and play plate sound
             gameState = GameState.Result;
         }
+    }
+
+    IEnumerator WaitForResult(float wait) {
+        yield return new WaitForSeconds(wait);
+        gameState = GameState.BallReady;
     }
 }
