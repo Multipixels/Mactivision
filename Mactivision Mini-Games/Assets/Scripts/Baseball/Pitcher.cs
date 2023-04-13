@@ -41,12 +41,29 @@ public class Pitcher : MonoBehaviour
         float distanceFromCenter = transform.position.x;
 
         for(int i = 0; i < 10; i++) {
+
+            /*
+            d = vt + 0.5at^2
+            
+            2(d - vt) / t^2 = a
+            */
+
+
             float airTime = minTime + ((maxTime-minTime)*(float)randomSeed.NextDouble());
 
             float desiredVelocity = 2 * distanceFromCenter / airTime;
 
             desiredAirTimes[i] = airTime;
-            desiredThrows[i] = new Vector2(desiredVelocity, 0);
+            
+            if (isLinear) {
+                desiredThrows[i] = new Vector2(desiredVelocity, 0);
+            } else {
+                float percentVelocity = desiredVelocity * randomSeed.Next(30, 120) / 100;
+
+                float acceleration = 2 * (distanceFromCenter * 2 - percentVelocity * airTime) / airTime / airTime;
+                desiredThrows[i] = new Vector2(percentVelocity, acceleration);
+            }
+            
         }
     }
 

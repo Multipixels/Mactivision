@@ -10,6 +10,9 @@ public class BaseballLevelManager : LevelManager
     public Pitcher pitcher;            // the ball pitcher
     public TMP_Text swingKeyText;      // text that contain instructions for swingKey bind  
 
+    int maxBallsThrown = 10;
+    int ballsThrown = 0;
+
     KeyCode swingKey;                  // keyboard key used to swing
 
     TimeAccuracyMetric taMetric;       // records time accuracy data during the game
@@ -97,6 +100,12 @@ public class BaseballLevelManager : LevelManager
             // begin game, begin recording 
             if (!taMetric.isRecording) StartGame();
 
+            // game automatically ends after maxGameTime seconds
+            if (ballsThrown >= maxBallsThrown) {
+                EndGame();
+                return;
+            }
+
             // The game cycle
             switch (gameState) {
                 case GameState.BallReady:
@@ -107,7 +116,7 @@ public class BaseballLevelManager : LevelManager
                     WaitForPlayer();
                     break;
                 case GameState.Result:
-                    StartCoroutine(WaitForResult(2f));
+                    StartCoroutine(WaitForResult(2f + pitcher.throwAirTime - (Time.time - pitcher.throwStartTime)));
                     gameState = GameState.WaitForResult;
                     break;
                 case GameState.WaitForResult:
@@ -138,6 +147,13 @@ public class BaseballLevelManager : LevelManager
     // When the player makes a choice, it plays appropriate animations and  
     // records the metric event, and starts the choice wait coroutine.
     void WaitForPlayer() {
+        if (Time.time - pitcher.throwStartTime > pitcher.throwAirTime + 0.5f) {
+            Debug.Log("Failed");
+            pitcher.Result(-999);
+
+            gameState = GameState.Result;
+        }
+
         if (Input.GetKeyDown(swingKey) || Input.GetKeyDown(swingKey)) {
 
             // animate player
@@ -159,6 +175,7 @@ public class BaseballLevelManager : LevelManager
 
     IEnumerator WaitForResult(float wait) {
         yield return new WaitForSeconds(wait);
+        ballsThrown++;
         gameState = GameState.BallReady;
     }
 }

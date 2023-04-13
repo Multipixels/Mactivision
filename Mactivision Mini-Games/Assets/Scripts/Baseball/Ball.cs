@@ -62,7 +62,7 @@ public class Ball : MonoBehaviour
 
             case BallState.Result:
                 float resultTimeDifference = Time.time - resultStartTime;
-                transform.position = resultInitPosition + new Vector3(10 * resultTimeDifference * Mathf.Cos(resultAngle), 10 * resultTimeDifference * Mathf.Sin(resultAngle), 0);
+                transform.position = resultInitPosition + new Vector3(15 * resultTimeDifference * Mathf.Cos(resultAngle), 15 * resultTimeDifference * Mathf.Sin(resultAngle), 0);
 
                 break;
         } 
