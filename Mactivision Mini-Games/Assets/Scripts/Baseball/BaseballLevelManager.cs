@@ -7,16 +7,25 @@ using UnityEngine;
 
 public class BaseballLevelManager : LevelManager
 {
-    public Pitcher pitcher;            // the ball pitcher
-    public TMP_Text swingKeyText;      // text that contain instructions for swingKey bind  
+    public Pitcher pitcher;             // the ball pitcher
+    public TMP_Text swingKeyText;       // text that contain instructions for swingKey bind  
 
-    int maxBallsThrown = 10;
-    int ballsThrown = 0;
+    int maxBallsThrown;
+    int ballsThrown;
 
-    KeyCode swingKey;                  // keyboard key used to swing
+    KeyCode swingKey;                   // keyboard key used to swing
 
-    TimeAccuracyMetric taMetric;       // records time accuracy data during the game
-    MetricJSONWriter metricWriter;     // outputs recording metric (bpMetric) as a json file
+    float throwDistance;                // distance that the ball has to travel in game units
+    float ballSize;                     // size of the ball (1f = 50% of player size, 2f = 100%...)
+    float averageThrowTime;             // center of throw time (seconds)
+    float throwTimeVariance;            // variance in the "averageThrowTime"
+    float averageInitialVelocity;       // center of initial velocity (1f = no acceleration, 0.5f = start at 50% velocity and accelerate
+                                        //                             1.5f = start at 150% velocity and deccelerate)
+    float initialVelocityVariance;      // variance in initial velocity
+    bool resultFeedback;                // toggle ball angle variance based on accuracy
+
+    TimeAccuracyMetric taMetric;        // records time accuracy data during the game
+    MetricJSONWriter metricWriter;      // outputs recording metric (bpMetric) as a json file
 
     // Represents the state of the game cycle
     enum GameState {
@@ -30,9 +39,9 @@ public class BaseballLevelManager : LevelManager
     // Start is called before the first frame update
     void Start() {
         Setup(); // run initial setup, inherited from parent class
-
         InitConfigurable(); // initialize configurable values
 
+        ballsThrown = 0;
         gameState = GameState.BallReady;
 
         // set the swingKey for the intro instructions
@@ -43,7 +52,7 @@ public class BaseballLevelManager : LevelManager
 
         taMetric = new TimeAccuracyMetric();
 
-        pitcher.Init(seed, 1, 2, false);
+        pitcher.Init(seed, maxBallsThrown, ballSize, averageThrowTime, throwTimeVariance, averageInitialVelocity, initialVelocityVariance);
     }
 
     // Initialize values using config file, or default values if config values not specified
@@ -67,10 +76,28 @@ public class BaseballLevelManager : LevelManager
         }
 
         seed = !String.IsNullOrEmpty(baseballConfig.Seed) ? baseballConfig.Seed : DateTime.Now.ToString(); // if no seed provided, use current DateTime
+        maxGameTime = baseballConfig.MaxGameTime > 0 ? baseballConfig.MaxGameTime : Default(120f, "MaxGameTime");
+        maxBallsThrown = baseballConfig.MaxBallsThrown > 0 ? baseballConfig.MaxBallsThrown: Default(10, "MaxBallsThrown");
+        throwDistance = baseballConfig.ThrowDistance > 0 && baseballConfig.ThrowDistance < 30f ? baseballConfig.ThrowDistance : Default(8f, "ThrowDistance");
+        ballSize = baseballConfig.BallSize > 0 ? baseballConfig.BallSize : Default(1f, "baseballConfig");
+        averageThrowTime = baseballConfig.AverageThrowTime > 0 ? baseballConfig.AverageThrowTime : Default(2f, "AverageThrowTime");
+        throwTimeVariance = baseballConfig.ThrowTimeVariance >= 0 ? baseballConfig.ThrowTimeVariance : Default(0f, "ThrowTimeVariance");
+        averageInitialVelocity = baseballConfig.AverageInitialVelocity > 0 ? baseballConfig.AverageInitialVelocity : Default(1f, "AverageInitialVelocity");
+        initialVelocityVariance = baseballConfig.InitialVelocityVariance >= 0 ? baseballConfig.InitialVelocityVariance : Default(0f, "InitialVelocityVariance");
+        resultFeedback = tempConfig != null ? baseballConfig.ResultFeedback : Default(true, "ResultFeedback");
 
         // update battery config with actual/final values being used
-        baseballConfig.SwingKey = swingKey.ToString();
         baseballConfig.Seed = seed;
+        baseballConfig.MaxGameTime = maxGameTime;
+        baseballConfig.MaxBallsThrown = maxBallsThrown;
+        baseballConfig.ThrowDistance = throwDistance;
+        baseballConfig.BallSize = ballSize;
+        baseballConfig.AverageThrowTime = averageThrowTime;
+        baseballConfig.ThrowTimeVariance = throwTimeVariance;
+        baseballConfig.AverageInitialVelocity= averageInitialVelocity;
+        baseballConfig.InitialVelocityVariance = initialVelocityVariance;
+        baseballConfig.ResultFeedback = resultFeedback;
+        baseballConfig.SwingKey = swingKey.ToString();
     }
 
     // Handles GUI events (keyboard, mouse, etc events)
@@ -84,8 +111,6 @@ public class BaseballLevelManager : LevelManager
                 ShowInstruction(++instructionCount);
             }
         }
-
-        //if (lvlState == 2 && e.keyCode != KeyCode.None) EndGame();
 
         // game is over, go to next game/finish battery
         if (lvlState == 4 && e.type == EventType.KeyUp) {

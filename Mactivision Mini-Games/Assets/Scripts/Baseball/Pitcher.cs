@@ -7,9 +7,13 @@ public class Pitcher : MonoBehaviour
 {
 
     System.Random randomSeed;    // seed of the current game
-    float minTime;               // minimum desired time of ball throw
-    float maxTime;               // maximum desired time of ball throw
-    bool isLinear;               // linear movement (constant velocity) or quadratic movement (acceleration)
+    int maxBallsThrown;
+    float ballSize;
+    float averageThrowTime;                    // center of throw time (seconds)
+    float throwTimeVariance;                   // variance in the "averageThrowTime"
+    float averageInitialVelocity;              // center of initial velocity (1f = no acceleration, 0.5f = start at 50% velocity and accelerate
+                                               //                             1.5f = start at 150% velocity and deccelerate)
+    float initialVelocityVariance;             // variance in initial velocity
 
     public GameObject ballObj;   // the ball object thrown
     Ball ball;                   // the ball script on the ball
@@ -23,7 +27,7 @@ public class Pitcher : MonoBehaviour
 
     // Initializes the pitcher with the seed.
     // Randomly chooses ball velocities.
-    public void Init(string seed, float minTime, float maxTime, bool isLinear) {
+    public void Init(string seed, int maxBallsThrown, float ballSize, float averageThrowTime, float throwTimeVariance, float averageInitialVelocity, float initialVelocityVariance) {
         ballObj.SetActive(false);
         ball = ballObj.GetComponent<Ball>();
 
@@ -31,12 +35,14 @@ public class Pitcher : MonoBehaviour
 
         randomSeed = new System.Random(seed.GetHashCode());
 
-        this.minTime = minTime;
-        this.maxTime = maxTime;
-        this.isLinear = isLinear;
+        this.ballSize = ballSize;
+        this.averageThrowTime = averageThrowTime;
+        this.throwTimeVariance = throwTimeVariance;
+        this.averageInitialVelocity = averageInitialVelocity;
+        this.initialVelocityVariance = initialVelocityVariance;
 
-        desiredThrows = new Vector2[10];
-        desiredAirTimes = new float[10];
+        desiredThrows = new Vector2[maxBallsThrown];
+        desiredAirTimes = new float[maxBallsThrown];
 
         float distanceFromCenter = transform.position.x;
 
@@ -49,21 +55,13 @@ public class Pitcher : MonoBehaviour
             */
 
 
-            float airTime = minTime + ((maxTime-minTime)*(float)randomSeed.NextDouble());
+            float airTime = averageThrowTime + throwTimeVariance * (2*(float)randomSeed.NextDouble() - 1);
+            desiredAirTimes[i] = airTime;
 
             float desiredVelocity = 2 * distanceFromCenter / airTime;
-
-            desiredAirTimes[i] = airTime;
-            
-            if (isLinear) {
-                desiredThrows[i] = new Vector2(desiredVelocity, 0);
-            } else {
-                float percentVelocity = desiredVelocity * randomSeed.Next(30, 120) / 100;
-
-                float acceleration = 2 * (distanceFromCenter * 2 - percentVelocity * airTime) / airTime / airTime;
-                desiredThrows[i] = new Vector2(percentVelocity, acceleration);
-            }
-            
+            float actualVelocity = desiredVelocity * (averageInitialVelocity + (initialVelocityVariance * (2 * (float)randomSeed.NextDouble() - 1)));
+            float acceleration = 2 * (distanceFromCenter * 2 - actualVelocity * airTime) / airTime / airTime;
+            desiredThrows[i] = new Vector2(actualVelocity, acceleration);
         }
     }
 

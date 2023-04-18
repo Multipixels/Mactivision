@@ -66,5 +66,13 @@ public class BaseballConfig : GameConfig
     public string Scene { get; set; }
     public string Seed { get; set; }
     public string SwingKey { get; set; }
-
+    public float MaxGameTime { get; set; }
+    public int MaxBallsThrown { get; set; }
+    public float ThrowDistance { get; set; }
+    public float BallSize { get; set; }
+    public float AverageThrowTime { get; set; }
+    public float ThrowTimeVariance { get; set; }
+    public float AverageInitialVelocity { get; set; }
+    public float InitialVelocityVariance { get; set; }
+    public bool ResultFeedback { get; set; }
 }
