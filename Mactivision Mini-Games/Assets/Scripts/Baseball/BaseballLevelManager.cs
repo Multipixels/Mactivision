@@ -84,7 +84,7 @@ public class BaseballLevelManager : LevelManager
         seed = !String.IsNullOrEmpty(baseballConfig.Seed) ? baseballConfig.Seed : DateTime.Now.ToString(); // if no seed provided, use current DateTime
         maxGameTime = baseballConfig.MaxGameTime > 0 ? baseballConfig.MaxGameTime : Default(120f, "MaxGameTime");
         maxBallsThrown = baseballConfig.MaxBallsThrown > 0 ? baseballConfig.MaxBallsThrown: Default(10, "MaxBallsThrown");
-        throwDistance = baseballConfig.ThrowDistance >= 2 && baseballConfig.ThrowDistance <= 12f ? baseballConfig.ThrowDistance : Default(12f, "ThrowDistance");
+        throwDistance = baseballConfig.ThrowDistance >= 2 && baseballConfig.ThrowDistance <= 12f ? baseballConfig.ThrowDistance : Default(8f, "ThrowDistance");
         ballSize = baseballConfig.BallSize > 0 ? baseballConfig.BallSize : Default(1f, "baseballConfig");
         averageThrowTime = baseballConfig.AverageThrowTime > 0 ? baseballConfig.AverageThrowTime : Default(2f, "AverageThrowTime");
         throwTimeVariance = baseballConfig.ThrowTimeVariance >= 0 ? baseballConfig.ThrowTimeVariance : Default(0f, "ThrowTimeVariance");
@@ -197,7 +197,9 @@ public class BaseballLevelManager : LevelManager
             ));
 
             Debug.Log(acc);
-            pitcher.Result(acc);
+            
+            if (resultFeedback) pitcher.Result(acc);
+            else if (Math.Abs(acc) <= 0.05) pitcher.Result(0);
 
             // animate choice and play plate sound
             gameState = GameState.Result;

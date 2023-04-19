@@ -40,7 +40,7 @@ public class Ball : MonoBehaviour
 
         if (Mathf.Abs(percentage) < 1) {
 
-            resultAngle = (Mathf.PI / 4) + (Mathf.PI / 8 * percentage);
+            resultAngle = (Mathf.PI / 4) + (Mathf.PI / 6 * percentage);
             resultInitPosition = transform.position;
             resultStartTime = Time.time;
             ballState = BallState.Result;
