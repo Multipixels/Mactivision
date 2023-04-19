@@ -9,8 +9,11 @@ public class BaseballLevelManager : LevelManager
 {
     public Pitcher pitcher;             // the ball pitcher
     public Batter batter;               // the batter player
-    public Camera camera;               // the camera
+    public new Camera camera;           // the camera
+    public Ball ball;                   // the ball
     public TMP_Text swingKeyText;       // text that contain instructions for swingKey bind  
+
+    public AudioClip hit;               // pong
 
     int maxBallsThrown;
     int ballsThrown;
@@ -57,6 +60,7 @@ public class BaseballLevelManager : LevelManager
         pitcher.transform.position = new Vector2(throwDistance / 2, pitcher.transform.position.y);
         batter.transform.position = new Vector2(-throwDistance / 2, batter.transform.position.y);
         camera.orthographicSize = 1 + (throwDistance - 2) / 2 * 0.55f;
+        ball.transform.localScale = new Vector2(1 + (0.5f * (ballSize - 1)), 1 + (0.5f * (ballSize - 1)));
         pitcher.Init(seed, maxBallsThrown, ballSize, averageThrowTime, throwTimeVariance, averageInitialVelocity, initialVelocityVariance);
         
     }
@@ -85,7 +89,7 @@ public class BaseballLevelManager : LevelManager
         maxGameTime = baseballConfig.MaxGameTime > 0 ? baseballConfig.MaxGameTime : Default(120f, "MaxGameTime");
         maxBallsThrown = baseballConfig.MaxBallsThrown > 0 ? baseballConfig.MaxBallsThrown: Default(10, "MaxBallsThrown");
         throwDistance = baseballConfig.ThrowDistance >= 2 && baseballConfig.ThrowDistance <= 12f ? baseballConfig.ThrowDistance : Default(8f, "ThrowDistance");
-        ballSize = baseballConfig.BallSize > 0 ? baseballConfig.BallSize : Default(1f, "baseballConfig");
+        ballSize = baseballConfig.BallSize > 0 ? baseballConfig.BallSize : Default(2f, "BallSize");
         averageThrowTime = baseballConfig.AverageThrowTime > 0 ? baseballConfig.AverageThrowTime : Default(2f, "AverageThrowTime");
         throwTimeVariance = baseballConfig.ThrowTimeVariance >= 0 ? baseballConfig.ThrowTimeVariance : Default(0f, "ThrowTimeVariance");
         averageInitialVelocity = baseballConfig.AverageInitialVelocity > 0 ? baseballConfig.AverageInitialVelocity : Default(1f, "AverageInitialVelocity");
@@ -200,6 +204,10 @@ public class BaseballLevelManager : LevelManager
             
             if (resultFeedback) pitcher.Result(acc);
             else if (Math.Abs(acc) <= 0.05) pitcher.Result(0);
+
+            if (Math.Abs(acc) <= 0.05) {
+                sound.PlayOneShot(hit);
+            }
 
             // animate choice and play plate sound
             gameState = GameState.Result;
