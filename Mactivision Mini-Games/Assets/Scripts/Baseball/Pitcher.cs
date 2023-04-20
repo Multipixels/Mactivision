@@ -18,6 +18,8 @@ public class Pitcher : MonoBehaviour
     public GameObject ballObj;   // the ball object thrown
     Ball ball;                   // the ball script on the ball
 
+    AudioSource sound;
+
     float[] desiredAirTimes;
     Vector2[] desiredThrows;
 
@@ -31,7 +33,7 @@ public class Pitcher : MonoBehaviour
         ballObj.SetActive(false);
         ball = ballObj.GetComponent<Ball>();
 
-        //sound = gameObject.GetComponent<AudioSource>();
+        sound = gameObject.GetComponent<AudioSource>();
 
         randomSeed = new System.Random(seed.GetHashCode());
 
@@ -76,6 +78,7 @@ public class Pitcher : MonoBehaviour
         ballObj.SetActive(true);
         ball.Init(transform.position, currentThrow.x, currentThrow.y);
         ball.Throw();
+        sound.PlayDelayed(0f);
     }
 
     public void Result(float acc) {
